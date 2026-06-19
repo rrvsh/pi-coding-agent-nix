@@ -60,7 +60,7 @@ jobs:
           git switch -c "$BRANCH_NAME"
           git add flake.lock VERSION.json
           git commit -m "chore(update): refresh pi package"
-          git push --force-with-lease origin "$BRANCH_NAME"
+          git push --force origin "$BRANCH_NAME"
 
       - name: Create or reuse pull request
         if: steps.changes.outputs.changed == 'true'

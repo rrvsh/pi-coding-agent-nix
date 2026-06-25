@@ -60,21 +60,38 @@ jobs:
           git switch -c "$BRANCH_NAME"
           git add flake.lock VERSION.json
           git commit -m "chore(update): refresh pi package"
-          git push --force origin "$BRANCH_NAME"
+          git fetch origin "refs/heads/$BRANCH_NAME:refs/remotes/origin/$BRANCH_NAME" || true
+          git push --force-with-lease origin "$BRANCH_NAME"
 
       - name: Create or reuse pull request
         if: steps.changes.outputs.changed == 'true'
+        id: pr
         timeout-minutes: 5
         run: |
-          if gh pr view "$BRANCH_NAME" --json number --jq .number >/dev/null 2>&1; then
-            echo "Pull request already exists for $BRANCH_NAME."
-          else
+          PR_NUMBER=$(gh pr list \
+            --state open \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --json number \
+            --jq '.[0].number // empty')
+
+          if [ -z "$PR_NUMBER" ]; then
             gh pr create \
               --title "chore(update): refresh pi package" \
               --body "Automated update of pi package version and flake.lock." \
               --base main \
               --head "$BRANCH_NAME"
+            PR_NUMBER=$(gh pr list \
+              --state open \
+              --base main \
+              --head "$BRANCH_NAME" \
+              --json number \
+              --jq '.[0].number')
+          else
+            echo "Open pull request #$PR_NUMBER already exists for $BRANCH_NAME."
           fi
+
+          echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
 
       - name: Enable auto-merge
         if: steps.changes.outputs.changed == 'true'
@@ -84,4 +101,4 @@ jobs:
             --auto \
             --delete-branch \
             --squash \
-            "$BRANCH_NAME"
+            "${{ steps.pr.outputs.number }}"

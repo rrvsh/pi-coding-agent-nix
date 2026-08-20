@@ -28,11 +28,15 @@
           src_dir="$workdir/pi-''${version}"
           npm_hash=$(prefetch-npm-deps "$src_dir/package-lock.json")
 
+          model_data_url="https://registry.npmjs.org/@earendil-works/pi-ai/-/pi-ai-''${version}.tgz"
+          model_data_hash=$(nix store prefetch-file --json "$model_data_url" | jq -r .hash)
+
           jq -n \
             --arg version "$version" \
             --arg srcHash "$src_hash" \
             --arg npmDepsHash "$npm_hash" \
-            '{version: $version, srcHash: $srcHash, npmDepsHash: $npmDepsHash}' > VERSION.json
+            --arg modelDataHash "$model_data_hash" \
+            '{version: $version, srcHash: $srcHash, npmDepsHash: $npmDepsHash, modelDataHash: $modelDataHash}' > VERSION.json
 
           nix flake update
         '';

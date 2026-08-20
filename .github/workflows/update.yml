@@ -6,6 +6,7 @@ on:
     - cron: "17 3 * * *"
 
 permissions:
+  actions: write
   contents: write
   pull-requests: write
 
@@ -92,6 +93,11 @@ jobs:
           fi
 
           echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch build checks
+        if: steps.changes.outputs.changed == 'true'
+        timeout-minutes: 5
+        run: gh workflow run build.yml --ref "$BRANCH_NAME"
 
       - name: Enable auto-merge
         if: steps.changes.outputs.changed == 'true'

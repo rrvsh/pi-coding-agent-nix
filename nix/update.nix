@@ -38,7 +38,6 @@
             --arg modelDataHash "$model_data_hash" \
             '{version: $version, srcHash: $srcHash, npmDepsHash: $npmDepsHash, modelDataHash: $modelDataHash}' > VERSION.json
 
-          nix flake update
         '';
       };
     };

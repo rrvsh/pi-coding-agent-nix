@@ -17,10 +17,8 @@ jobs:
       matrix:
         include:
           - name: Linux build
-            system: x86_64-linux
             runner: ubuntu-latest
           - name: Darwin build
-            system: aarch64-darwin
             runner: macos-latest
     steps:
       - name: Checkout repository
@@ -43,4 +41,4 @@ jobs:
 
       - name: Build pi-coding-agent
         timeout-minutes: 120
-        run: nix build --print-build-logs ".#packages.${{ matrix.system }}.pi-coding-agent"
+        run: nix build --print-build-logs .#pi-coding-agent

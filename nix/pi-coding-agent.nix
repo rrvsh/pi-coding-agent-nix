@@ -6,21 +6,22 @@ in
 {
   perSystem =
     { pkgs, ... }:
+    let
+      piSource = pkgs.fetchFromGitHub {
+        owner = "earendil-works";
+        repo = "pi";
+        tag = "v${versionInfo.version}";
+        hash = versionInfo.srcHash;
+      };
+    in
     {
-      packages.pi-coding-agent = pkgs.pi-coding-agent.overrideAttrs (finalAttrs: {
+      packages.pi-coding-agent = pkgs.pi-coding-agent.overrideAttrs {
         version = versionInfo.version;
-
-        src = pkgs.fetchFromGitHub {
-          owner = "earendil-works";
-          repo = "pi";
-          tag = "v${versionInfo.version}";
-          hash = versionInfo.srcHash;
-        };
-
+        src = piSource;
         npmDepsHash = versionInfo.npmDepsHash;
 
         npmDeps = pkgs.fetchNpmDeps {
-          src = finalAttrs.src;
+          src = piSource;
           name = "pi-coding-agent-${versionInfo.version}-npm-deps";
           hash = versionInfo.npmDepsHash;
         };
@@ -33,13 +34,15 @@ in
         buildPhase = ''
           runHook preBuild
 
-          npx tsgo -p packages/chord/tsconfig.build.json
-          npx tsgo -p packages/tui/tsconfig.build.json
-          npx tsgo -p packages/telemetry/tsconfig.build.json
-          npx tsgo -p packages/ai/tsconfig.build.json
-          npx tsgo -p packages/agent/tsconfig.build.json
-          npx tsgo -p packages/protocol/tsconfig.build.json
-          npx tsgo -p packages/client/tsconfig.build.json
+          npx tsc -p packages/chord/tsconfig.build.json
+          npx tsc -p packages/tui/tsconfig.build.json
+          npx tsc -p packages/telemetry/tsconfig.build.json
+          npx tsc -p packages/codemode/tsconfig.build.json
+          npx tsc -p packages/mcp/tsconfig.build.json
+          npx tsc -p packages/ai/tsconfig.build.json
+          npx tsc -p packages/agent/tsconfig.build.json
+          npx tsc -p packages/protocol/tsconfig.build.json
+          npx tsc -p packages/client/tsconfig.build.json
           npm run build --workspace=packages/coding-agent
 
           runHook postBuild
@@ -52,6 +55,8 @@ in
                     @earendil-works/pi-ai:packages/ai \
                     @earendil-works/pi-agent-core:packages/agent \
                     @earendil-works/pi-client:packages/client \
+                    @earendil-works/pi-codemode:packages/codemode \
+                    @earendil-works/pi-mcp:packages/mcp \
                     @earendil-works/pi-protocol:packages/protocol \
                     @earendil-works/pi-telemetry:packages/telemetry \
                     @earendil-works/pi-tui:packages/tui; do
@@ -63,6 +68,6 @@ in
           find "$nm" -type l -lname '*/packages/*' -delete
           find "$nm/.bin" -xtype l -delete
         '';
-      });
+      };
     };
 }
